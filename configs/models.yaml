@@ -1,0 +1,363 @@
+# Humanity's Sixth Sense (HSS) -- model registry.
+#
+# Every model is called through one OpenAI-compatible endpoint (we use a LiteLLM
+# proxy; see README). `model_id` is the name that endpoint exposes for the model,
+# so adjust it to match your own deployment.
+#
+# `defaults` is deep-merged into every entry under `models` and `judge.models`;
+# per-model keys win. The entries below are the 24 models reported in the paper,
+# at the reasoning effort used there.
+
+defaults:
+  enabled: true
+
+  # --- capabilities -------------------------------------------------------
+  supports_images: true
+  # Accepts a whole video file in one content block. When false, videos are
+  # uniformly frame-sampled instead (see `video` below).
+  native_video: false
+  supports_reasoning_effort: true
+
+  # --- decoding -------------------------------------------------------------
+  reasoning_effort: high
+  supported_efforts: [none, low, medium, high]
+  # Thinking tokens count against this budget.
+  max_output_tokens: 16384
+  temperature: null        # null -> omit from the request (provider default)
+  top_p: null
+  extra_body: {}           # additional provider-specific request fields
+
+  # --- video handling (when native_video is false) -------------------------
+  video:
+    fps: 2.0               # uniform sampling rate, frames per second
+    # Cap on frames per video. The sampling rate is lowered to respect it, so
+    # the frames still span the whole clip. Override with `--max-frames`.
+    max_frames: 500
+    max_side: 768          # downscale the longest frame side (px); null = keep
+    jpeg_quality: 3        # ffmpeg -q:v (2 = best, 31 = worst)
+    # Largest file sent whole to a native-video model before falling back to frames.
+    native_max_bytes: 62914560   # 60 MiB
+    # Cap on images in one request; frames are thinned uniformly to fit.
+    max_images_per_request: 500
+    # Combined size of all frames in one request (encoded bytes). Base64 and
+    # JSON add roughly 1.5x on the wire, so 32 MB of frames fits a 50 MB request.
+    max_total_image_bytes: 32000000
+
+  # --- image handling -------------------------------------------------------
+  image:
+    max_side: 4096         # downscale if the longest side exceeds this; null = keep
+    max_bytes: 4500000     # re-encode / downscale if the payload exceeds this
+    detail: null           # OpenAI-style "low"/"high"/"auto"; null = omit
+
+  # --- transport ------------------------------------------------------------
+  request:
+    timeout: 1200          # seconds; long videos at high effort can take minutes
+    max_retries: 5
+    initial_backoff: 4.0
+    max_backoff: 90.0
+
+models:
+  # --- OpenAI ---------------------------------------------------------------
+  # Called on the Responses API, which honours effort=max and returns
+  # reasoning summaries.
+  gpt-6-astra:
+    model_id: openai/gpt-6-astra
+    display_name: GPT-6-astra
+    vendor: openai
+    api: responses
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+    extra_body:
+      allowed_openai_params: ["reasoning_effort"]
+    video:
+      max_total_image_bytes: 33000000
+
+  gpt-6-sol:
+    model_id: openai/gpt-6-sol
+    display_name: GPT-6-sol
+    vendor: openai
+    api: responses
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+
+  gpt-6-luna:
+    model_id: openai/gpt-6-luna
+    display_name: GPT-6-luna
+    vendor: openai
+    api: responses
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+
+  gpt-5.6-sol:
+    model_id: openai/gpt-5.6-sol
+    display_name: GPT-5.6-sol
+    vendor: openai
+    api: responses
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [none, low, medium, high, xhigh, max]
+    video:
+      max_total_image_bytes: 33000000
+
+  gpt-5.6-terra:
+    model_id: openai/gpt-5.6-terra
+    display_name: GPT-5.6-terra
+    vendor: openai
+    api: responses
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+
+  gpt-5.6-luna:
+    model_id: openai/gpt-5.6-luna
+    display_name: GPT-5.6-luna
+    vendor: openai
+    api: responses
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+
+  # --- Anthropic --------------------------------------------------------------
+  # Called on the Anthropic Messages API (`api: messages`), which reports
+  # thinking-token counts. `thinking.display: summarized` returns a reasoning
+  # summary; it does not change how much the model thinks.
+  claude-opus-5.5:
+    model_id: anthropic/claude-opus-5-5
+    display_name: Claude-Opus-5.5
+    vendor: anthropic
+    api: messages
+    max_output_tokens: 128000
+    reasoning_effort: xhigh
+    supported_efforts: [low, medium, high, xhigh, max]
+    extra_body:
+      thinking: {type: adaptive, display: summarized}
+
+  claude-fable-5.1:
+    model_id: anthropic/claude-fable-5-1
+    display_name: Claude-Fable-5.1
+    vendor: anthropic
+    api: messages
+    max_output_tokens: 128000
+    reasoning_effort: xhigh
+    supported_efforts: [low, medium, high, xhigh, max]
+    extra_body:
+      thinking: {type: adaptive, display: summarized}
+    video:
+      max_total_image_bytes: 20000000
+    # Long-tailed latency at high effort: fewer, longer attempts.
+    request:
+      timeout: 3000
+      max_retries: 3
+
+  claude-fable-5:
+    model_id: anthropic/claude-fable-5
+    display_name: Claude-Fable-5
+    vendor: anthropic
+    api: messages
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [none, minimal, low, medium, high, xhigh, max]
+    extra_body:
+      thinking: {type: adaptive, display: summarized}
+    video:
+      max_total_image_bytes: 20000000
+
+  claude-opus-5:
+    model_id: anthropic/claude-opus-5
+    display_name: Claude-Opus-5
+    vendor: anthropic
+    api: messages
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [none, low, minimal, medium, high, xhigh, max]
+    extra_body:
+      thinking: {type: adaptive, display: summarized}
+    video:
+      max_total_image_bytes: 20000000
+
+  claude-sonnet-5:
+    model_id: anthropic/claude-sonnet-5
+    display_name: Claude-Sonnet-5
+    vendor: anthropic
+    api: messages
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+    extra_body:
+      thinking: {type: adaptive, display: summarized}
+
+  claude-opus-4-8:
+    model_id: anthropic/claude-opus-4-8
+    display_name: Claude-Opus-4.8
+    vendor: anthropic
+    api: messages
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+    extra_body:
+      thinking: {type: adaptive, display: summarized}
+
+  # --- Google -----------------------------------------------------------------
+  # Gemini takes the whole video file, so no frame sampling is applied.
+  gemini-3.8-flash:
+    model_id: gemini/gemini-3.8-flash
+    display_name: Gemini-3.8-flash
+    vendor: google
+    max_output_tokens: 65536
+    reasoning_effort: high
+    supported_efforts: [none, minimal, low, medium, high]
+    native_video: true
+
+  gemini-3.7-flash:
+    model_id: gemini/gemini-3.7-flash
+    display_name: Gemini-3.7-flash
+    vendor: google
+    max_output_tokens: 65536
+    reasoning_effort: high
+    supported_efforts: [none, minimal, low, medium, high]
+    native_video: true
+
+  gemini-3.6-flash:
+    model_id: gemini/gemini-3.6-flash
+    display_name: Gemini-3.6-flash
+    vendor: google
+    reasoning_effort: high
+    supported_efforts: [none, minimal, low, medium, high]
+    native_video: true
+
+  gemini-3.5-flash:
+    model_id: gemini/gemini-3.5-flash
+    display_name: Gemini-3.5-flash
+    vendor: google
+    reasoning_effort: high
+    supported_efforts: [none, minimal, low, medium, high]
+    native_video: true
+
+  # --- Meta -------------------------------------------------------------------
+  # Native video up to 50 MB; at most 50 images per request when frame-sampled.
+  muse-spark-1.3:
+    model_id: meta_ai/muse-spark-1.3
+    display_name: Muse Spark 1.3
+    vendor: meta
+    api: responses
+    reasoning_summary: detailed
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+    native_video: true
+    video:
+      max_images_per_request: 50
+      native_max_bytes: 50000000
+
+  muse-spark-1.2:
+    model_id: meta_ai/muse-spark-1.2
+    display_name: Muse Spark 1.2
+    vendor: meta
+    api: responses
+    reasoning_summary: detailed
+    max_output_tokens: 128000
+    reasoning_effort: xhigh
+    supported_efforts: [low, medium, high, xhigh]
+    native_video: true
+    video:
+      max_images_per_request: 50
+      native_max_bytes: 50000000
+
+  # --- Alibaba ----------------------------------------------------------------
+  # DashScope accepts at most 250 images per request.
+  qwen3.8-max:
+    model_id: dashscope/qwen3.8-max
+    display_name: Qwen3.8-Max
+    vendor: alibaba
+    max_output_tokens: 32768
+    reasoning_effort: max
+    supported_efforts: [none, minimal, low, medium, high, xhigh, max]
+    video:
+      max_images_per_request: 250
+
+  qwen3.8-flash:
+    model_id: dashscope/qwen3.8-flash
+    display_name: Qwen3.8-Flash
+    vendor: alibaba
+    max_output_tokens: 32768
+    reasoning_effort: max
+    supported_efforts: [none, minimal, low, medium, high, xhigh, max]
+    video:
+      max_images_per_request: 250
+
+  # --- Moonshot ---------------------------------------------------------------
+  kimi-k3:
+    model_id: moonshot/kimi-k3
+    display_name: Kimi-K3
+    vendor: moonshot
+    max_output_tokens: 32768
+    reasoning_effort: max
+    supported_efforts: [low, high, max]
+
+  # --- Xiaomi -----------------------------------------------------------------
+  mimo-v2.6-pro:
+    model_id: xiaomi/mimo-v2.6-pro
+    display_name: MiMo-V2.6-Pro
+    vendor: xiaomi
+    max_output_tokens: 32768
+    reasoning_effort: high
+    supported_efforts: [none, low, medium, high]
+
+  mimo-v2.6-flash:
+    model_id: xiaomi/mimo-v2.6-flash
+    display_name: MiMo-V2.6-Flash
+    vendor: xiaomi
+    max_output_tokens: 32768
+    reasoning_effort: high
+    supported_efforts: [none, low, medium, high]
+
+  # --- Zhipu ------------------------------------------------------------------
+  glm-5.3-flash:
+    model_id: fireworks_ai/glm-5p3-flash
+    display_name: GLM-5.3-flash
+    vendor: zhipu
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+    video:
+      max_images_per_request: 60     # Fireworks limit per conversation
+
+# Rubric grader. The paper's headline numbers use `judge-claude-opus-5`; the
+# others are the alternative judges from the judge-agreement analysis.
+judge:
+  default: judge-claude-opus-5
+  # Whether the judge also sees the media. Rubrics are checkable from the
+  # reference answer alone, so this is off.
+  include_media: false
+  models:
+    judge-claude-opus-5:
+      model_id: anthropic/claude-opus-5
+      display_name: Claude-Opus-5 (judge)
+      vendor: anthropic
+      reasoning_effort: high
+      max_output_tokens: 8192
+      request:
+        max_retries: 8
+        initial_backoff: 8.0
+        max_backoff: 180.0
+    judge-gpt-5.6-sol:
+      model_id: openai/gpt-5.6-sol
+      display_name: GPT-5.6-sol (judge)
+      vendor: openai
+      reasoning_effort: high
+      max_output_tokens: 8192
+    judge-gpt-5.6-terra:
+      model_id: openai/gpt-5.6-terra
+      display_name: GPT-5.6-terra (judge)
+      vendor: openai
+      reasoning_effort: high
+      max_output_tokens: 8192
+    judge-gemini-3.6-flash:
+      model_id: gemini/gemini-3.6-flash
+      display_name: Gemini-3.6-flash (judge)
+      vendor: google
+      reasoning_effort: high
+      max_output_tokens: 8192

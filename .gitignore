@@ -1,0 +1,14 @@
+# Credentials
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Run outputs and extracted video frames
+results/
+cache/

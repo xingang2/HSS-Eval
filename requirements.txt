@@ -1,0 +1,9 @@
+# Python 3.10+. Video frame sampling also needs ffmpeg/ffprobe on PATH.
+openai>=1.40.0
+huggingface_hub>=0.23
+PyYAML>=6.0
+Pillow>=10.0
+tqdm>=4.65
+
+# tests
+pytest>=7.0
