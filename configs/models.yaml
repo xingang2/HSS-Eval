@@ -5,7 +5,7 @@
 # so adjust it to match your own deployment.
 #
 # `defaults` is deep-merged into every entry under `models` and `judge.models`;
-# per-model keys win. The entries below are the 24 models reported in the paper,
+# per-model keys win. The entries below are the 25 models reported in the paper,
 # at the reasoning effort used there.
 
 defaults:
@@ -72,6 +72,17 @@ models:
       allowed_openai_params: ["reasoning_effort"]
     video:
       max_total_image_bytes: 33000000
+
+  gpt-6.1-sol:
+    model_id: openai/gpt-6.1-sol
+    display_name: GPT-6.1-sol
+    vendor: openai
+    api: responses
+    max_output_tokens: 128000
+    reasoning_effort: max
+    supported_efforts: [low, medium, high, xhigh, max]
+    extra_body:
+      allowed_openai_params: ["reasoning_effort"]
 
   gpt-6-sol:
     model_id: openai/gpt-6-sol
@@ -272,7 +283,6 @@ models:
     model_id: dashscope/qwen3.8-max
     display_name: Qwen3.8-Max
     vendor: alibaba
-    max_output_tokens: 32768
     reasoning_effort: max
     supported_efforts: [none, minimal, low, medium, high, xhigh, max]
     video:
@@ -280,37 +290,37 @@ models:
 
   qwen3.8-flash:
     model_id: dashscope/qwen3.8-flash
-    display_name: Qwen3.8-Flash
+    display_name: Qwen3.8-flash
     vendor: alibaba
-    max_output_tokens: 32768
     reasoning_effort: max
     supported_efforts: [none, minimal, low, medium, high, xhigh, max]
     video:
       max_images_per_request: 250
 
   # --- Moonshot ---------------------------------------------------------------
+  # This route takes images but not a video block; at most 100 images per request.
   kimi-k3:
-    model_id: moonshot/kimi-k3
+    model_id: bedrock/us.moonshotai.kimi-k3
     display_name: Kimi-K3
     vendor: moonshot
-    max_output_tokens: 32768
+    max_output_tokens: 128000
     reasoning_effort: max
-    supported_efforts: [low, high, max]
+    supported_efforts: [low, medium, high, xhigh, max]
+    video:
+      max_images_per_request: 100
 
   # --- Xiaomi -----------------------------------------------------------------
   mimo-v2.6-pro:
-    model_id: xiaomi/mimo-v2.6-pro
-    display_name: MiMo-V2.6-Pro
+    model_id: mimo-v2.6-pro
+    display_name: MiMo-v2.6-pro
     vendor: xiaomi
-    max_output_tokens: 32768
     reasoning_effort: high
     supported_efforts: [none, low, medium, high]
 
   mimo-v2.6-flash:
-    model_id: xiaomi/mimo-v2.6-flash
-    display_name: MiMo-V2.6-Flash
+    model_id: mimo-v2.6-flash
+    display_name: MiMo-v2.6-flash
     vendor: xiaomi
-    max_output_tokens: 32768
     reasoning_effort: high
     supported_efforts: [none, low, medium, high]
 
@@ -343,12 +353,6 @@ judge:
         max_retries: 8
         initial_backoff: 8.0
         max_backoff: 180.0
-    judge-gpt-5.6-sol:
-      model_id: openai/gpt-5.6-sol
-      display_name: GPT-5.6-sol (judge)
-      vendor: openai
-      reasoning_effort: high
-      max_output_tokens: 8192
     judge-gpt-5.6-terra:
       model_id: openai/gpt-5.6-terra
       display_name: GPT-5.6-terra (judge)

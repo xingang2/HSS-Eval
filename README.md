@@ -1,15 +1,53 @@
-# Humanity's Sixth Sense (HSS) — Evaluation Harness
+# Humanity's Sixth Sense: Benchmarking Intuitive Visual Reasoning in Multimodal Models
 
-[Dataset](https://huggingface.co/datasets/ScaleAI/HSS) · [Leaderboard](https://scale.com/leaderboard/hss)
+[Dataset](https://huggingface.co/datasets/ScaleAI/HSS) · [Leaderboard](https://scale.com/leaderboard/hss) · [Citation](#citation)
 
-**Humanity's Sixth Sense (HSS)** is a benchmark for *intuitive visual reasoning*:
-the implicit temporal, spatial, social and abstract structure that people infer
-from an image or a short video at a glance. It has 522 tasks (288 images, 234
-videos) across 4 domains and 11 subdomains. Each task pairs one image or video
-with a question, a human-written reference answer, and a rubric of
-independently checkable criteria.
+A single glance at a scene tells people far more than the pixels show: what just
+happened, whether a car will fit in a gap, who holds authority in a room, which
+number belongs on a smudged label. **Humanity's Sixth Sense (HSS)** measures
+this *intuitive visual reasoning* in multimodal models. It asks questions whose
+answers are implicit in an image or video: obvious to a person at a glance, but
+never stated in the scene.
 
-This repository is the harness used to evaluate models on HSS:
+- **522 tasks** (288 images, 234 videos) across **4 domains and 11 subdomains**
+  of temporal, spatial, social and abstract inference.
+- **Human-written and human-verified.** Every task has a reference answer and a
+  rubric of independently checkable criteria. Only tasks that passed three
+  independent review rounds unanimously were kept: 522 of 3,466 authored (15.1%).
+- **Open-ended answers, strict grading.** Models answer in free text, and an
+  answer counts as correct only if it meets every rubric criterion.
+
+<p align="center">
+  <img src="assets/examples.jpg" width="100%" alt="HSS task examples, one from each domain">
+</p>
+<p align="center"><em>One task from each domain: the media, the question, the reference answer and the rubric.</em></p>
+
+## Results
+
+Frontier models fall far short of people on HSS. Human participants reach
+**93.1%**; the best model, GPT-6-astra at maximum reasoning effort, reaches
+**53.6%**.
+
+<p align="center">
+  <img src="assets/leaderboard.png" width="100%" alt="HSS leaderboard: pass@1 for 25 models and the human baseline">
+</p>
+<p align="center"><em>pass@1 (%) on all 522 tasks, 3 attempts per task, with 95% bootstrap intervals over tasks.</em></p>
+
+Findings from the paper:
+
+- **The gap is not closed by more compute.** Raising reasoning effort, adding
+  video frames, or putting models in agentic harnesses that can crop and zoom
+  narrows the gap to humans but does not close it.
+- **Models fail at seeing and inferring, not at reasoning.** 94% of model errors
+  come from visual perception or latent inference (reading what is in the scene,
+  or what it implies), not from the deliberate reasoning steps that follow.
+
+The live leaderboard is at [scale.com/leaderboard/hss](https://scale.com/leaderboard/hss).
+
+## This repository
+
+This is the harness used to produce the results above. Use it to evaluate a new
+model on HSS or to reproduce the paper's numbers:
 
 ```
 image/video + question ──► model under evaluation ──► answer ──► rubric judge ──► scores
@@ -142,7 +180,7 @@ The `report` command prints a leaderboard for the run:
 
 ## Models
 
-[`configs/models.yaml`](configs/models.yaml) lists the 24 models from the paper
+[`configs/models.yaml`](configs/models.yaml) lists the 25 models from the paper
 and the judges. A `defaults` block is merged into every entry. The main fields
 are:
 

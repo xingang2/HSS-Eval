@@ -239,7 +239,7 @@ def test_answers_under_a_different_system_prompt_are_not_reusable(tmp_path):
 # --------------------------------------------------------------------------
 def test_registry_holds_the_paper_roster():
     registry = load_registry(DEFAULT_MODELS_YAML)
-    assert len(registry.models) == 24
+    assert len(registry.models) == 25
     assert registry.judge_settings.default == "judge-claude-opus-5"
     assert registry.get("gemini-3.8-flash").native_video is True
     assert registry.get("gpt-6-astra").native_video is False
