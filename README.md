@@ -253,7 +253,7 @@ Run the tests with `python -m pytest tests -q`.
 ```bibtex
 @misc{guo2026hss,
   title  = {Humanity's Sixth Sense: Benchmarking Intuitive Visual Reasoning in Multimodal Models},
-  author = {Xingang Guo and Jing Gu and Brian Jang and Renxiong Wang and Utkarsh Tyagi and Daniel Quigley and Steven Li and David Yan and Daniel Yue Zhang and Darvin Yi and Forrest Huang and HiJae Kim and Tianyi Zhang and Jared Lichtarge and Jihua Huang and Le Xue and Manan Tomar and Qiuyi Richard Zhang and Ruofei Yu and Seth Neel and Yaning Hu and Marcella Valentine and Daniel Evans and Chenguang Wang and Dustin Tran and Tong Zhao and Yinfei Yang and Yunzhong He},
+  author = {Xingang Guo and Jing Gu and Brian Jang and Renxiong Wang and Utkarsh Tyagi and Daniel Quigley and Steven Li and David Yan and Daniel Yue Zhang and Darvin Yi and Forrest Huang and HiJae Kim and Tianyi Zhang and Jared Lichtarge and Jihua Huang and Le Xue and Manan Tomar and Qiuyi Richard Zhang and Ruofei Yu and Seth Neel and Yaning Hu and Marcella Valentine and Xinzhe Jiang and Daniel Evans and Chenguang Wang and Dustin Tran and Tong Zhao and Yinfei Yang and Yunzhong He},
   year   = {2026}
 }
 ```
